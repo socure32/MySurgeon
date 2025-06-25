@@ -14,35 +14,50 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Validate Firebase configuration
-if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) {
-  console.warn('Missing Firebase environment variables. Using demo mode.');
-}
+// Check if we have valid Firebase configuration
+const hasValidFirebaseConfig = () => {
+  return firebaseConfig.apiKey && 
+         firebaseConfig.authDomain && 
+         firebaseConfig.projectId &&
+         !firebaseConfig.apiKey.includes('demo') &&
+         !firebaseConfig.authDomain.includes('demo') &&
+         !firebaseConfig.projectId.includes('demo') &&
+         firebaseConfig.apiKey !== 'your_api_key_here' &&
+         firebaseConfig.apiKey !== 'demo-api-key';
+};
 
 // Check if we're using demo credentials
-const isDemoMode = firebaseConfig.apiKey?.includes('Demo') || 
-                   firebaseConfig.authDomain?.includes('demo') ||
-                   firebaseConfig.projectId?.includes('demo');
+const isDemoMode = !hasValidFirebaseConfig();
 
 if (isDemoMode) {
-  console.warn('Demo Firebase credentials detected. Some features may not work properly.');
+  console.warn('Demo Firebase credentials detected or missing configuration. Running in demo mode - authentication features will be limited.');
 }
 
 // Initialize Firebase with error handling
-let app;
-try {
-  app = initializeApp(firebaseConfig);
-} catch (error) {
-  console.error('Failed to initialize Firebase:', error);
-  // Create a mock app object to prevent crashes
-  app = null;
+let app = null;
+let auth = null;
+let db = null;
+let storage = null;
+
+if (hasValidFirebaseConfig()) {
+  try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    storage = getStorage(app);
+    console.log('Firebase initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize Firebase:', error);
+    app = null;
+    auth = null;
+    db = null;
+    storage = null;
+  }
+} else {
+  console.warn('Firebase not initialized due to invalid or missing configuration');
 }
 
-// Initialize Firebase services with error handling
-export const auth = app ? getAuth(app) : null;
-export const db = app ? getFirestore(app) : null;
-export const storage = app ? getStorage(app) : null;
-
+export { auth, db, storage };
 export default app;
 
 // Helper function to check if Firebase is available

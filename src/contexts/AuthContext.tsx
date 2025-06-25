@@ -35,16 +35,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const available = isFirebaseAvailable();
     setFirebaseAvailable(available);
     
-    if (!available || !auth) {
+    if (!available) {
       console.warn('Firebase not available, running in demo mode');
       setLoading(false);
-      // Show service unavailable notification
-      showServiceUnavailable('Firebase Authentication', 'sign in/sign up');
+      // Show service unavailable notification only once
+      const hasShownNotification = sessionStorage.getItem('firebase-notification-shown');
+      if (!hasShownNotification) {
+        showServiceUnavailable('Firebase Authentication', 'sign in/sign up');
+        sessionStorage.setItem('firebase-notification-shown', 'true');
+      }
       return;
     }
 
-    // Listen for auth changes
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    // Listen for auth changes only if Firebase is available
+    const unsubscribe = onAuthStateChanged(auth!, async (user) => {
       setUser(user);
       if (user) {
         await fetchProfile(user.uid);

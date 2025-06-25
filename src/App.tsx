@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ErrorProvider } from './contexts/ErrorContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SignIn } from './components/auth/SignIn';
 import { SignUp } from './components/auth/SignUp';
@@ -99,15 +100,17 @@ const AppContent: React.FC = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <Routes>
-            <Route path="/*" element={<AppContent />} />
-          </Routes>
-        </div>
-      </Router>
-    </AuthProvider>
+    <ErrorProvider>
+      <AuthProvider>
+        <Router>
+          <div className="App">
+            <Routes>
+              <Route path="/*" element={<AppContent />} />
+            </Routes>
+          </div>
+        </Router>
+      </AuthProvider>
+    </ErrorProvider>
   );
 }
 
